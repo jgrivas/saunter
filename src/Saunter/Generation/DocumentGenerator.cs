@@ -74,10 +74,10 @@ namespace Saunter.Generation
                 var channelItem = new ChannelItem
                 {
                     Description = mc.Channel.Description,
-                    Parameters = mc.Channel.Parameters,
+                    Parameters = this.GetChannelParametersFromAttributes(mc.Method, schemaRepository),
                     Publish = GenerateOperationFromMethod(mc.Method, schemaRepository, OperationType.Publish),
                     Subscribe = GenerateOperationFromMethod(mc.Method, schemaRepository, OperationType.Subscribe),
-                }; 
+                };
                 channels.Add(mc.Channel.Name, channelItem);
 
                 var context = new ChannelItemFilterContext(mc.Method, schemaRepository, mc.Channel);
@@ -110,7 +110,7 @@ namespace Saunter.Generation
                 var channelItem = new ChannelItem
                 {
                     Description = cc.Channel.Description,
-                    Parameters = cc.Channel.Parameters,
+                    Parameters = this.GetChannelParametersFromAttributes(cc.Type, schemaRepository),
                     Publish = GenerateOperationFromClass(cc.Type, schemaRepository, OperationType.Publish),
                     Subscribe = GenerateOperationFromClass(cc.Type, schemaRepository, OperationType.Subscribe),                    
                 };
@@ -280,6 +280,27 @@ namespace Saunter.Generation
             };
 
             return message;
+        }
+
+        private Parameters GetChannelParametersFromAttributes(MemberInfo memberInfo, ISchemaRepository schemaRepository)
+        {
+            IEnumerable<ChannelParameterAttribute> attributes = memberInfo.GetCustomAttributes<ChannelParameterAttribute>();
+            var parameters = new Parameters();
+            if (attributes.Any())
+            {
+                foreach (ChannelParameterAttribute attribute in attributes)
+                {
+                    var parameter = new Parameter
+                    {
+                        Description = attribute.Description,
+                        Schema = _schemaGenerator.GenerateSchema(attribute.Type, schemaRepository),
+                        Location = attribute.Location,
+                    };
+                    parameters.Add(attribute.Name, parameter);
+                }
+            }
+
+            return parameters;
         }
     }
 }
