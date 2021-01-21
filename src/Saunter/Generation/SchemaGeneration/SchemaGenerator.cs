@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.Options;
 using Saunter.AsyncApiSchema.v2;
+using Saunter.AsyncApiSchema.v2.Extensions;
 using Saunter.Attributes;
 using Saunter.Utils;
 
@@ -27,9 +28,9 @@ namespace Saunter.Generation.SchemaGeneration
             return reference;
         }
 
-        private Schema TypeSchemaFactory(Type type, ISchemaRepository schemaRepository)
+        private ISchema TypeSchemaFactory(Type type, ISchemaRepository schemaRepository)
         {
-            var schema = GetSchemaIfPrimitive(type);
+            ISchema schema = GetSchemaIfPrimitive(type);
             if (schema != null)
             {
                 return schema;
@@ -193,8 +194,10 @@ namespace Saunter.Generation.SchemaGeneration
             return null;
         }
 
-        private Schema GetSchemaIfDiscriminator(Type type, ISchemaRepository schemaRepository)
+        private ISchema GetSchemaIfDiscriminator(Type type, ISchemaRepository schemaRepository)
         {
+            string ToCamelCase(string data) => char.ToLowerInvariant(data[0]) + data.Substring(1);
+
             const bool InheritDiscriminatorAttributes = false;
             var discriminatorAttribute = type.GetCustomAttribute<DiscriminatorAttribute>(InheritDiscriminatorAttributes);
             var discriminatorSubTypeAttributes = type.GetCustomAttributes<DiscriminatorSubTypeAttribute>();
@@ -203,11 +206,36 @@ namespace Saunter.Generation.SchemaGeneration
                 return null;
             }
 
+            var subTypes = discriminatorSubTypeAttributes.Select(x =>
+                new
+                {
+                    x.DiscriminatorValue,
+                    Schema = GenerateSchema(x.SubType, schemaRepository),
+                    Ref = ReferenceType.Schema.GetReferencePath(_options.SchemaIdSelector(x.SubType)),
+                }).ToList();
+
+            string propertyName = ToCamelCase(discriminatorAttribute.PropertyName);
+            var required = new HashSet<string> { propertyName };
+            List<ISchema> oneOf = subTypes.Select(x => x.Schema).ToList();
+            if (_options.EnableDiscriminatorMappings)
+            {
+                return new ExtendedSchema
+                {
+                    Required = required,
+                    OneOf = oneOf,
+                    Discriminator = new Discriminator
+                    {
+                        PropertyName = propertyName,
+                        Mapping = subTypes.Where(x => !string.IsNullOrWhiteSpace(x.DiscriminatorValue)).ToDictionary(x => x.DiscriminatorValue, x => x.Ref),
+                    },
+                };
+            }
+
             return new Schema
             {
-                Required = new HashSet<string> { discriminatorAttribute.PropertyName },
-                Discriminator = discriminatorAttribute.PropertyName,
-                OneOf = discriminatorSubTypeAttributes.Select(x => GenerateSchema(x.SubType, schemaRepository)).ToList(),
+                Required = required,
+                Discriminator = propertyName,
+                OneOf = oneOf,
             };
         }
     }

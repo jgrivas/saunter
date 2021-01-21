@@ -4,7 +4,8 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
-
+using Saunter.AsyncApiSchema.v2;
+using Saunter.AsyncApiSchema.v2.Extensions;
 using Saunter.Attributes;
 using Saunter.Generation.SchemaGeneration;
 using Shouldly;
@@ -28,97 +29,180 @@ namespace Saunter.Tests.Generation.SchemaGeneration
         [Fact]
         public void GenerateSchema_GenerateSchemaFromTypeWithProperties_GeneratesSchemaCorrectly()
         {
+            // Arrange
             var type = typeof(Foo);
 
+            // Act
             var schema = _schemaGenerator.GenerateSchema(type, _schemaRepository);
 
+            // Arrange
             schema.ShouldNotBeNull();
             _schemaRepository.Schemas.ShouldNotBeNull();
+
             _schemaRepository.Schemas.ContainsKey("foo").ShouldBeTrue();
-            _schemaRepository.Schemas["foo"].Required.Count.ShouldBe(2);
-            _schemaRepository.Schemas["foo"].Required.Contains("id").ShouldBeTrue();
-            _schemaRepository.Schemas["foo"].Required.Contains("bar").ShouldBeTrue();
-            _schemaRepository.Schemas["foo"].Properties.Count.ShouldBe(5);
-            _schemaRepository.Schemas["foo"].Properties.ContainsKey("id").ShouldBeTrue();
-            _schemaRepository.Schemas["foo"].Properties.ContainsKey("bar").ShouldBeTrue();
-            _schemaRepository.Schemas["foo"].Properties.ContainsKey("fooType").ShouldBeTrue();
-            _schemaRepository.Schemas["foo"].Properties.ContainsKey("hello").ShouldBeTrue();
-            _schemaRepository.Schemas["foo"].Properties.ContainsKey("world").ShouldBeTrue();
+            _schemaRepository.Schemas["foo"].GetType().ShouldBe(typeof(Schema));
+            var fooSchema = _schemaRepository.Schemas["foo"] as Schema;
+            fooSchema.Required.Count.ShouldBe(2);
+            fooSchema.Required.Contains("id").ShouldBeTrue();
+            fooSchema.Required.Contains("bar").ShouldBeTrue();
+            fooSchema.Properties.Count.ShouldBe(5);
+            fooSchema.Properties.ContainsKey("id").ShouldBeTrue();
+            fooSchema.Properties.ContainsKey("bar").ShouldBeTrue();
+            fooSchema.Properties.ContainsKey("fooType").ShouldBeTrue();
+            fooSchema.Properties.ContainsKey("hello").ShouldBeTrue();
+            fooSchema.Properties.ContainsKey("world").ShouldBeTrue();
+
             _schemaRepository.Schemas.ContainsKey("bar").ShouldBeTrue();
-            _schemaRepository.Schemas["bar"].Properties.Count.ShouldBe(2);
-            _schemaRepository.Schemas["bar"].Properties.ContainsKey("name").ShouldBeTrue();
-            _schemaRepository.Schemas["bar"].Properties.ContainsKey("cost").ShouldBeTrue();
+            _schemaRepository.Schemas["bar"].GetType().ShouldBe(typeof(Schema));
+            var barSchema = _schemaRepository.Schemas["bar"] as Schema;
+            barSchema.Properties.Count.ShouldBe(2);
+            barSchema.Properties.ContainsKey("name").ShouldBeTrue();
+            barSchema.Properties.ContainsKey("cost").ShouldBeTrue();
         }
 
         [Fact]
         public void GenerateSchema_GenerateSchemaFromTypeWithFields_GeneratesSchemaCorrectly()
         {
+            // Arrange
             var type = typeof(Book);
 
+            // Act
             var schema = _schemaGenerator.GenerateSchema(type, _schemaRepository);
 
+            // Arrange
             schema.ShouldNotBeNull();
             _schemaRepository.Schemas.ShouldNotBeNull();
+
             _schemaRepository.Schemas.ContainsKey("book").ShouldBeTrue();
-            _schemaRepository.Schemas["book"].Properties.Count.ShouldBe(4);
+            _schemaRepository.Schemas["book"].GetType().ShouldBe(typeof(Schema));
+            var bookSchema = _schemaRepository.Schemas["book"] as Schema;
+            bookSchema.Properties.Count.ShouldBe(4);
+
             _schemaRepository.Schemas.ContainsKey("foo").ShouldBeTrue();
-            _schemaRepository.Schemas["foo"].Required.Count.ShouldBe(2);
-            _schemaRepository.Schemas["foo"].Required.Contains("id").ShouldBeTrue();
-            _schemaRepository.Schemas["foo"].Required.Contains("bar").ShouldBeTrue();
-            _schemaRepository.Schemas["foo"].Properties.Count.ShouldBe(5);
-            _schemaRepository.Schemas["foo"].Properties.ContainsKey("id").ShouldBeTrue();
-            _schemaRepository.Schemas["foo"].Properties.ContainsKey("bar").ShouldBeTrue();
-            _schemaRepository.Schemas["foo"].Properties.ContainsKey("fooType").ShouldBeTrue();
-            _schemaRepository.Schemas["foo"].Properties.ContainsKey("hello").ShouldBeTrue();
-            _schemaRepository.Schemas["foo"].Properties.ContainsKey("world").ShouldBeTrue();
+            _schemaRepository.Schemas["foo"].GetType().ShouldBe(typeof(Schema));
+            var fooSchema = _schemaRepository.Schemas["foo"] as Schema;
+            fooSchema.Required.Count.ShouldBe(2);
+            fooSchema.Required.Contains("id").ShouldBeTrue();
+            fooSchema.Required.Contains("bar").ShouldBeTrue();
+            fooSchema.Properties.Count.ShouldBe(5);
+            fooSchema.Properties.ContainsKey("id").ShouldBeTrue();
+            fooSchema.Properties.ContainsKey("bar").ShouldBeTrue();
+            fooSchema.Properties.ContainsKey("fooType").ShouldBeTrue();
+            fooSchema.Properties.ContainsKey("hello").ShouldBeTrue();
+            fooSchema.Properties.ContainsKey("world").ShouldBeTrue();
         }
 
         [Fact]
         public void GenerateSchema_GenerateSchemaFromClassWithDiscriminator_GeneratesSchemaCorrectly()
         {
+            // Arrange
             var type = typeof(Pet);
 
+            // Act
             var schema = _schemaGenerator.GenerateSchema(type, _schemaRepository);
 
+            // Assert
             schema.ShouldNotBeNull();
             _schemaRepository.Schemas.ShouldNotBeNull();
+
             _schemaRepository.Schemas.ContainsKey("pet").ShouldBeTrue();
-            _schemaRepository.Schemas["pet"].Discriminator.ShouldBe("petType");
-            _schemaRepository.Schemas["pet"].OneOf.Count().ShouldBe(2);
+            _schemaRepository.Schemas["pet"].GetType().ShouldBe(typeof(Schema));
+            var petSchema = _schemaRepository.Schemas["pet"] as Schema;
+            petSchema.Discriminator.ShouldBe("petType");
+            petSchema.OneOf.Count().ShouldBe(2);
+
             _schemaRepository.Schemas.ContainsKey("cat").ShouldBeTrue();
-            _schemaRepository.Schemas["cat"].Properties.Count.ShouldBe(3);
-            _schemaRepository.Schemas["cat"].Properties.ContainsKey("petType").ShouldBeTrue();
-            _schemaRepository.Schemas["cat"].Properties.ContainsKey("name").ShouldBeTrue();
-            _schemaRepository.Schemas["cat"].Properties.ContainsKey("huntingSkill").ShouldBeTrue();
+            _schemaRepository.Schemas["cat"].GetType().ShouldBe(typeof(Schema));
+            var catSchema = _schemaRepository.Schemas["cat"] as Schema;
+            catSchema.Properties.Count.ShouldBe(3);
+            catSchema.Properties.ContainsKey("petType").ShouldBeTrue();
+            catSchema.Properties.ContainsKey("name").ShouldBeTrue();
+            catSchema.Properties.ContainsKey("huntingSkill").ShouldBeTrue();
+
             _schemaRepository.Schemas.ContainsKey("dog").ShouldBeTrue();
-            _schemaRepository.Schemas["dog"].Properties.Count.ShouldBe(3);
-            _schemaRepository.Schemas["dog"].Properties.ContainsKey("petType").ShouldBeTrue();
-            _schemaRepository.Schemas["dog"].Properties.ContainsKey("name").ShouldBeTrue();
-            _schemaRepository.Schemas["dog"].Properties.ContainsKey("packSize").ShouldBeTrue();
+            _schemaRepository.Schemas["dog"].GetType().ShouldBe(typeof(Schema));
+            var dogSchema = _schemaRepository.Schemas["dog"] as Schema;
+            dogSchema.Properties.Count.ShouldBe(3);
+            dogSchema.Properties.ContainsKey("petType").ShouldBeTrue();
+            dogSchema.Properties.ContainsKey("name").ShouldBeTrue();
+            dogSchema.Properties.ContainsKey("packSize").ShouldBeTrue();
         }
 
         [Fact]
         public void GenerateSchema_GenerateSchemaFromInterfaceWithDiscriminator_GeneratesSchemaCorrectly()
         {
+            // Arrange
             var type = typeof(IPet);
 
+            // Act
             var schema = _schemaGenerator.GenerateSchema(type, _schemaRepository);
 
+            // Assert
             schema.ShouldNotBeNull();
             _schemaRepository.Schemas.ShouldNotBeNull();
+
             _schemaRepository.Schemas.ContainsKey("iPet").ShouldBeTrue();
-            _schemaRepository.Schemas["iPet"].Discriminator.ShouldBe("petType");
-            _schemaRepository.Schemas["iPet"].OneOf.Count().ShouldBe(2);
+            _schemaRepository.Schemas["iPet"].GetType().ShouldBe(typeof(Schema));
+            var petSchema = _schemaRepository.Schemas["iPet"] as Schema;
+            petSchema.Discriminator.ShouldBe("petType");
+            petSchema.OneOf.Count().ShouldBe(2);
+
             _schemaRepository.Schemas.ContainsKey("cat").ShouldBeTrue();
-            _schemaRepository.Schemas["cat"].Properties.Count.ShouldBe(3);
-            _schemaRepository.Schemas["cat"].Properties.ContainsKey("petType").ShouldBeTrue();
-            _schemaRepository.Schemas["cat"].Properties.ContainsKey("name").ShouldBeTrue();
-            _schemaRepository.Schemas["cat"].Properties.ContainsKey("huntingSkill").ShouldBeTrue();
+            _schemaRepository.Schemas["cat"].GetType().ShouldBe(typeof(Schema));
+            var catSchema = _schemaRepository.Schemas["cat"] as Schema;
+            catSchema.Properties.Count.ShouldBe(3);
+            catSchema.Properties.ContainsKey("petType").ShouldBeTrue();
+            catSchema.Properties.ContainsKey("name").ShouldBeTrue();
+            catSchema.Properties.ContainsKey("huntingSkill").ShouldBeTrue();
+
             _schemaRepository.Schemas.ContainsKey("dog").ShouldBeTrue();
-            _schemaRepository.Schemas["dog"].Properties.Count.ShouldBe(3);
-            _schemaRepository.Schemas["dog"].Properties.ContainsKey("petType").ShouldBeTrue();
-            _schemaRepository.Schemas["dog"].Properties.ContainsKey("name").ShouldBeTrue();
-            _schemaRepository.Schemas["dog"].Properties.ContainsKey("packSize").ShouldBeTrue();
+            _schemaRepository.Schemas["dog"].GetType().ShouldBe(typeof(Schema));
+            var dogSchema = _schemaRepository.Schemas["dog"] as Schema;
+            dogSchema.Properties.Count.ShouldBe(3);
+            dogSchema.Properties.ContainsKey("petType").ShouldBeTrue();
+            dogSchema.Properties.ContainsKey("name").ShouldBeTrue();
+            dogSchema.Properties.ContainsKey("packSize").ShouldBeTrue();
+        }
+
+        [Fact]
+        public void GenerateSchema_GenerateSchemaWithDiscriminatorMappings_GeneratesSchemaCorrectly()
+        {
+            // Arrange
+            var type = typeof(Pet);
+            var options = new AsyncApiOptions { EnableDiscriminatorMappings = true };
+            var schemaGenerator = new SchemaGenerator(Options.Create(options));
+
+            // Act
+            var schema = schemaGenerator.GenerateSchema(type, _schemaRepository);
+
+            // Assert
+            schema.ShouldNotBeNull();
+            _schemaRepository.Schemas.ShouldNotBeNull();
+
+            _schemaRepository.Schemas.ContainsKey("pet").ShouldBeTrue();
+            _schemaRepository.Schemas["pet"].GetType().ShouldBe(typeof(ExtendedSchema));
+            var petSchema = _schemaRepository.Schemas["pet"] as ExtendedSchema;
+            petSchema.Discriminator.PropertyName.ShouldBe("petType");
+            petSchema.Discriminator.Mapping.Count.ShouldBe(2);
+            petSchema.Discriminator.Mapping.ShouldContainKey("Cat");
+            petSchema.Discriminator.Mapping.ShouldContainKey("Dog");
+            petSchema.OneOf.Count().ShouldBe(2);
+
+            _schemaRepository.Schemas.ContainsKey("cat").ShouldBeTrue();
+            _schemaRepository.Schemas["cat"].GetType().ShouldBe(typeof(Schema));
+            var catSchema = _schemaRepository.Schemas["cat"] as Schema;
+            catSchema.Properties.Count.ShouldBe(3);
+            catSchema.Properties.ContainsKey("petType").ShouldBeTrue();
+            catSchema.Properties.ContainsKey("name").ShouldBeTrue();
+            catSchema.Properties.ContainsKey("huntingSkill").ShouldBeTrue();
+
+            _schemaRepository.Schemas.ContainsKey("dog").ShouldBeTrue();
+            _schemaRepository.Schemas["dog"].GetType().ShouldBe(typeof(Schema));
+            var dogSchema = _schemaRepository.Schemas["dog"] as Schema;
+            dogSchema.Properties.Count.ShouldBe(3);
+            dogSchema.Properties.ContainsKey("petType").ShouldBeTrue();
+            dogSchema.Properties.ContainsKey("name").ShouldBeTrue();
+            dogSchema.Properties.ContainsKey("packSize").ShouldBeTrue();
         }
     }
 
@@ -185,8 +269,8 @@ namespace Saunter.Tests.Generation.SchemaGeneration
     }
 
     [Discriminator("petType")]
-    [DiscriminatorSubType(typeof(Cat))]
-    [DiscriminatorSubType(typeof(Dog))]
+    [DiscriminatorSubType(typeof(Cat), DiscriminatorValue = nameof(Cat))]
+    [DiscriminatorSubType(typeof(Dog), DiscriminatorValue = nameof(Dog))]
     public abstract class Pet : IPet
     {
         public string PetType { get; set; }
