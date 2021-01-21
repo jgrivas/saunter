@@ -6,8 +6,8 @@ namespace Saunter.Generation.SchemaGeneration
 {
     public interface ISchemaRepository
     {
-        IDictionary<ComponentFieldName, Schema> Schemas { get; }
+        IDictionary<ComponentFieldName, ISchema> Schemas { get; }
 
-        ISchema GetOrAdd(Type type, string schemaId, Func<Schema> factory);
+        ISchema GetOrAdd(Type type, string schemaId, Func<ISchema> factory);
     }
 }

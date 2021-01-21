@@ -97,6 +97,11 @@ namespace Saunter
         /// Options related to the Saunter middleware
         /// </summary>
         public AsyncApiMiddlewareOptions Middleware { get; set; } = new AsyncApiMiddlewareOptions();
+
+        /// <summary>
+        /// Option to enable the discriminator mapping as it is supported in OpenAPI using discriminator values.
+        /// </summary>
+        public bool EnableDiscriminatorMappings { get; set; }
     }
 
     public class AsyncApiMiddlewareOptions
