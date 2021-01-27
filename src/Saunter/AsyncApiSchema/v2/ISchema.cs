@@ -19,34 +19,34 @@ namespace Saunter.AsyncApiSchema.v2
 
         [JsonPropertyName("title")]
         public string Title { get; set; }
-        
+
         [JsonPropertyName("format")]
         public string Format { get; set; }
-        
+
         [JsonPropertyName("description")]
         public string Description { get; set; }
-        
+
         [JsonPropertyName("minimum")]
         public decimal? Minimum { get; set; }
-        
+
         [JsonPropertyName("maximum")]
         public decimal? Maximum { get; set; }
-        
+
         [JsonPropertyName("maxLength")]
         public int? MaxLength { get; set; }
-        
+
         [JsonPropertyName("minLength")]
         public int? MinLength { get; set; }
-        
+
         [JsonPropertyName("minItems")]
         public int? MinItems { get; set; }
-        
+
         [JsonPropertyName("maxItems")]
         public int? MaxItems { get; set; }
-        
+
         [JsonPropertyName("uniqueItems")]
         public bool? UniqueItems { get; set; }
-        
+
         [JsonPropertyName("pattern")]
         public string Pattern { get; set; }
 
